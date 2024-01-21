@@ -60,7 +60,9 @@ def resp(link):
 
 def geminiresp(url):
     #write code to generate summary from gemini
-    pass
+    model = genai.GenerativeModel('models/gemini-pro')
+    response = model.generate_content(f"Give a brief summary in 50 words from this url: {url}")
+    return response.text
 
 def search_button_clicked(userinput):
     with st.spinner("Generating URLs..."):
@@ -68,7 +70,8 @@ def search_button_clicked(userinput):
     with st.spinner("Generating summaries..."):
         for url in urls:
             try:
-                summary = resp(url)
+                # summary = resp(url)
+                summary = geminiresp(url)
                 urls_n_summs[url] = summary
             except:
                 continue
