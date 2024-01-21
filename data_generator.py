@@ -48,29 +48,30 @@ def get_gemini_response(input_html):
     response = chat.send_message("I have the html of a webpage. Since I can't send you all of it in one prompt, I'll give in pieces from the next prompt. When I've sent all, I'll tell you, You are supposed to give me a summary within 150 words of what information is given on that webpage. is that ok?")
 
     n = len(html)
-    for i in range(0, n, 80000):
-        resp = chat.send_message(input_html[i:i+80000])
-        print(resp.text)
+    for i in range(0, n, 120000):
+        resp = chat.send_message(input_html[i:i+120000])
+        # print(resp.text)
     final_response = chat.send_message("I've sent you all the html content, Now give me a summary of what that webpage is about(word limit=150), i want summary in form of a paragraph.")
-    print("final: ", final_response.text)
+    # print("final: ", final_response.text)
     # response=model.generate_content([prompt[0],input_html,specs])
     return final_response.text
 
 def get_summary():
     pass
-topics_search=['Learn Morse Code',
-'Learn to read lips',
-'Learn to write in shorthand',
-'Buddhist meditation and mudras',
-'How to do animation',
-'Learn to read body language',
-'Learn to read and write poetry',
-'Learn to write comedy sketches',
-'Basic computer coding',
-'Learn to make different breads',
-'Learn to make yogurt',
-'Update yourself on politics',
-'Read feminist theory',
+topics_search=[
+    # 'Learn Morse Code',
+# 'Learn to read lips',
+# 'Learn to write in shorthand',
+# 'Buddhist meditation and mudras',
+# 'How to do animation',
+# 'Learn to read body language',
+# 'Learn to read and write poetry',
+# 'Learn to write comedy sketches',
+# 'Basic computer coding',
+# 'Learn to make different breads',
+# 'Learn to make yogurt',
+# 'Update yourself on politics',
+# 'Read feminist theory',
 'Why introversion should be more appreciated',
 'How to knit']
 # 'What kind of knife to use in what cooking situations',
@@ -98,20 +99,25 @@ topics_search=['Learn Morse Code',
 # 'Learn to watercolor',
 # 'Learn to paint',
 # 'Study the etymological roots of words']
-df=pd.read_csv('data_g_sim.csv')
-# df['URL']=[]
-# df['SUMMARY']=[]
+# df=pd.read_csv('data_g_sim.csv')
+df=pd.DataFrame()
+df['URL']=[]
+df['SUMMARY']=[]
 count=0
 for topic in topics_search:
     urls=generate_urls(topic)
     print(topic)
     for url in urls:
         html=requests.get(url).text
-        summary=get_gemini_response(input_html=html)
+        try:
+            summary=get_gemini_response(input_html=html)
+        except:
+            continue
         df.loc[count]=[url,summary]
+        df.to_csv('data_g_sim2.csv')
         count+=1
         # break
     # break
-print(df)
+# print(df)
 df.to_csv('data_g_sim.csv')
 # print(len(requests.get('https://deepmind.google/technologies/gemini/#introduction').text))
