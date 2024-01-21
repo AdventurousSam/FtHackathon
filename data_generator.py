@@ -28,7 +28,23 @@ def generate_urls(user_input):
 
 
 def get_gemini_response(prompt,input_html,specs):
-    model=genai.GenerativeModel('gemini-pro')
+    safety_settings = {
+        'HARM_CATEGORY_SEXUALLY_EXPLICIT' : 'block_none',
+        'HARM_CATEGORY_HATE_SPEECH' : 'block_none',
+        'HARM_CATEGORY_HARASSMENT' : 'block_none',
+        'HARM_CATEGORY_DANGEROUS_CONTENT' : 'block_none'
+    }
+    gen_config = genai.GenerationConfig(temperature=0.8)
+
+    model = genai.GenerativeModel(
+        'models/gemini-pro',
+        safety_settings=safety_settings,
+        generation_config=gen_config
+        )
+    chat = model.start_chat()
+
+    # response = chat.send_message("Your message here")
+
     response=model.generate_content([prompt[0],input_html,specs])
     return response.text
 
