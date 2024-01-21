@@ -85,3 +85,4 @@ for topic in topics_search:
         summary=get_summary()
         df.loc[count]=[url,summary]
         count+=1
+# print(len(requests.get('https://deepmind.google/technologies/gemini/#introduction').text))
