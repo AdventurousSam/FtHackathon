@@ -114,10 +114,10 @@ for topic in topics_search:
         except:
             continue
         df.loc[count]=[url,summary]
-        df.to_csv('data_g_sim2.csv')
+        df.to_csv('data_g_sim3.csv')
         count+=1
         # break
     # break
 # print(df)
-df.to_csv('data_g_sim.csv')
+# df.to_csv('data_g_sim.csv')
 # print(len(requests.get('https://deepmind.google/technologies/gemini/#introduction').text))
