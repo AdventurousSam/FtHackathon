@@ -1,6 +1,6 @@
 from google import generativeai as genai
 import os
-from serpapi import GoogleSearch
+from serpapi import search
 import requests
 import pandas as pd
 
@@ -13,7 +13,7 @@ def generate_urls(user_input):
         "num" : 20
     }
 
-    search = GoogleSearch(params)
+    search = search(params)
     results = search.get_dict()
     # print(results)
 
@@ -27,7 +27,7 @@ def generate_urls(user_input):
     return links
 
 
-def get_gemini_response(prompt,input_html,specs):
+def get_gemini_response(input_html):
     safety_settings = {
         'HARM_CATEGORY_SEXUALLY_EXPLICIT' : 'block_none',
         'HARM_CATEGORY_HATE_SPEECH' : 'block_none',
@@ -43,10 +43,16 @@ def get_gemini_response(prompt,input_html,specs):
         )
     chat = model.start_chat()
 
-    # response = chat.send_message("Your message here")
+    response = chat.send_message("I have the html of a webpage. Since I can't send you all of it in one prompt, I'll give in pieces from the next prompt. When I've sent all, I'll tell you, You are supposed to give me a summary of what information is given on that webpage. is that ok?")
 
-    response=model.generate_content([prompt[0],input_html,specs])
-    return response.text
+    n = len(html)
+    for i in range(0, n, 80000):
+        resp = chat.send_message(input_html[i:i+80000])
+        print(resp.text)
+    final_response = chat.send_message("I've sent you all the html content, Now give me a summary of what that webpage is about.")
+    print("final: ", final_response.text)
+    # response=model.generate_content([prompt[0],input_html,specs])
+    return final_response.text
 
 def get_summary():
     pass
@@ -98,7 +104,9 @@ for topic in topics_search:
     urls=generate_urls(topic)
     for url in urls:
         html=requests.get(url).text
-        summary=get_summary()
+        summary=get_gemini_response(input_html=html)
         df.loc[count]=[url,summary]
         count+=1
+        break
+    break
 # print(len(requests.get('https://deepmind.google/technologies/gemini/#introduction').text))
