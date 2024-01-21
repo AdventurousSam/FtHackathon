@@ -12,6 +12,9 @@ import os
 
 load_dotenv()
 genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
+
+urls_n_summs = {}
+
 def generate_urls(user_input):
     # You can replace this logic with your own URL generation based on user input
     params = {
@@ -55,10 +58,25 @@ def resp(link):
     )
     return (json.loads(response.text.strip())['choices'][0]['message']['content'])
 
+def geminiresp(url):
+    #write code to generate summary from gemini
+    pass
+
+def search_button_clicked(userinput):
+    with st.spinner("Generating URLs..."):
+        urls = generate_urls(userinput)
+    with st.spinner("Generating summaries..."):
+        for url in urls:
+            try:
+                summary = resp(url)
+                urls_n_summs[url] = summary
+            except:
+                continue
+            url_button = st.button(summary, on_click=button_click, args=([url]))
 
 
 def button_click(url):
-    webbrowser.open(url,1)
+    webbrowser.open(url, 2)
 
 def main():
     st.title("Streamlit URL Generation with Summary Example")
@@ -66,21 +84,10 @@ def main():
 
     # Use st.text_area instead of st.text_input
     user_input = st.sidebar.text_area("Enter your text:")
-
-    # Check if Enter key is pressed before generating URLs
-    if st.sidebar.button("Generate URLs"):
-        urls = generate_urls(user_input)
-        # print("\n\n\ndone\n\n\n")
-        st.header("Generated Summaries:")
-        for url in urls:
-            try:
-                summary = resp(url)
-            except:
-                continue
-            button = st.button(summary, on_click=button_click, args=([url]))
-
-
-
+    generate_button = st.sidebar.button("Generate URLs", on_click=search_button_clicked, args=([user_input]))
+    if urls_n_summs:
+        for url in urls_n_summs:
+            st.button(urls_n_summs[url], on_click=button_click, args=([url]))
 
 if __name__ == "__main__":
     main()

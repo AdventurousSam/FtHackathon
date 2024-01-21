@@ -1,6 +1,6 @@
 from google import generativeai as genai
 import os
-from serpapi import GoogleSearch
+from serpapi import search
 import requests
 import pandas as pd
 from dotenv import load_dotenv
@@ -15,8 +15,8 @@ def generate_urls(user_input):
         "num" : 20
     }
 
-    search = GoogleSearch(params)
-    results = search.get_dict()
+    searh = search(params)
+    results = searh.as_dict()
     # print(results)
 
     organic_results = results["organic_results"]
@@ -72,23 +72,23 @@ topics_search=[
 # 'Learn to make yogurt',
 # 'Update yourself on politics',
 # 'Read feminist theory',
-'Why introversion should be more appreciated',
-'How to knit']
-# 'What kind of knife to use in what cooking situations',
-# 'What kind of cheese pairs best with what food',
-# 'Learn different knots',
-# 'Learn basic greetings in different languages',
-# 'Speed read the African novel Things Fall Apart',
-# 'Speed read the novel The Good Earth',
-# 'Speed read the novel Malalas Story',
-# 'Speed read or get the digest version of any number of book or short story out there',
-# 'How to perform CPR',
-# 'How to help perform “CPR for mental illnesses”',
-# 'Study how an engine works',
-# 'Learn how to best cut hair',
-# 'Learn how to better appreciate film',
-# 'Learn how to better tell a story',
-# 'Learn how to forage for food',
+# 'Why introversion should be more appreciated',
+# 'How to knit']
+'What kind of knife to use in what cooking situations',
+'What kind of cheese pairs best with what food',
+'Learn different knots',
+'Learn basic greetings in different languages',
+'Speed read the African novel Things Fall Apart',
+'Speed read the novel The Good Earth',
+'Speed read the novel Malalas Story',
+'Speed read or get the digest version of any number of book or short story out there',
+'How to perform CPR',
+'How to help perform “CPR for mental illnesses”',
+'Study how an engine works',
+'Learn how to best cut hair',
+'Learn how to better appreciate film',
+'Learn how to better tell a story',
+'Learn how to forage for food']
 # 'Learn how best to garden',
 # 'Learn about different kinds of soon-to-be extinct animals',
 # 'Learn to sleep with your eyes open',
@@ -108,16 +108,17 @@ for topic in topics_search:
     urls=generate_urls(topic)
     print(topic)
     for url in urls:
+        print(url)
         html=requests.get(url).text
         try:
             summary=get_gemini_response(input_html=html)
         except:
             continue
         df.loc[count]=[url,summary]
-        df.to_csv('data_g_sim3.csv')
+        df.to_csv('data_g_sam1.csv')
         count+=1
         # break
     # break
 # print(df)
-# df.to_csv('data_g_sim.csv')
+df.to_csv('data_g_sam.csv')
 # print(len(requests.get('https://deepmind.google/technologies/gemini/#introduction').text))
