@@ -18,7 +18,7 @@ def generate_urls(user_input):
         "engine": "google",
         "q": user_input,
         "api_key": os.getenv('SERP_API_KEY'),
-        "num" : 5
+        "num" : 8
     }
 
     search = GoogleSearch(params)
@@ -32,19 +32,29 @@ def generate_urls(user_input):
 
     return links
 
-def scrape_url(url,specs='general information'):
-    x=requests.get(url)
-    prompt=[f"""
-            Hey you are expert in understanding about the website and creating a short summary within a word limit of 50 words.
-            You will be given a url you can also open that url for getting me information.
-            you donot have to give any imformation about the code of the website unless asked specifically.
-        """]
-    # response=get_gemini_response(prompt,str(url),specs)
-    return url
-def get_gemini_response(prompt,input_html,specs):
-    model=genai.GenerativeModel('gemini-pro')
-    response=model.generate_content([prompt[0],input_html,specs])
-    return response.text
+def resp(link):
+    response = requests.post(
+    url="https://openrouter.ai/api/v1/chat/completions",
+    headers={
+    "Authorization": f"Bearer {os.getenv('MISTRAL_API_KEY')}",
+    # "HTTP-Referer": f"{YOUR_SITE_URL}", # Optional, for including your app on openrouter.ai rankings.
+    # "X-Title": f"{YOUR_APP_NAME}", # Optional. Shows in rankings on openrouter.ai.
+    },
+    data=json.dumps({
+    "model": "mistralai/mixtral-8x7b-instruct", # Optional
+    "messages": [
+      {"role": "user", "content": f"""
+       Your work is to understand the whole html file and extract usefull information which is seen the person who opens that webpage whose html code is given to you.
+       you donot have to get infromation of the code of webpage until specifically asked.
+       {requests.get(link).text} this is the html of webpage which a user opens on browser while browsing on internet, you have to generate a summary(word limit=50 words, strictly follow this),
+       your summary should be able to explain the person about the website he opens.
+       generate summary within wordlimit of 50 words.
+       """}
+    ]
+    })
+    )
+    return (json.loads(response.text.strip())['choices'][0]['message']['content'])
+
 
 
 def button_click(url):
@@ -63,8 +73,11 @@ def main():
         # print("\n\n\ndone\n\n\n")
         st.header("Generated Summaries:")
         for url in urls:
-            # summary = scrape_url(url)
-            button = st.button(url, on_click=button_click, args=([url]))
+            try:
+                summary = resp(url)
+            except:
+                continue
+            button = st.button(summary, on_click=button_click, args=([url]))
 
 
 
