@@ -1,9 +1,11 @@
 from google import generativeai as genai
 import os
-from serpapi import search
+from serpapi import GoogleSearch
 import requests
 import pandas as pd
-
+from dotenv import load_dotenv
+load_dotenv()
+genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
 def generate_urls(user_input):
     # You can replace this logic with your own URL generation based on user input
     params = {
@@ -13,7 +15,7 @@ def generate_urls(user_input):
         "num" : 20
     }
 
-    search = search(params)
+    search = GoogleSearch(params)
     results = search.get_dict()
     # print(results)
 
@@ -43,13 +45,13 @@ def get_gemini_response(input_html):
         )
     chat = model.start_chat()
 
-    response = chat.send_message("I have the html of a webpage. Since I can't send you all of it in one prompt, I'll give in pieces from the next prompt. When I've sent all, I'll tell you, You are supposed to give me a summary of what information is given on that webpage. is that ok?")
+    response = chat.send_message("I have the html of a webpage. Since I can't send you all of it in one prompt, I'll give in pieces from the next prompt. When I've sent all, I'll tell you, You are supposed to give me a summary within 150 words of what information is given on that webpage. is that ok?")
 
     n = len(html)
     for i in range(0, n, 80000):
         resp = chat.send_message(input_html[i:i+80000])
         print(resp.text)
-    final_response = chat.send_message("I've sent you all the html content, Now give me a summary of what that webpage is about.")
+    final_response = chat.send_message("I've sent you all the html content, Now give me a summary of what that webpage is about(word limit=150), i want summary in form of a paragraph.")
     print("final: ", final_response.text)
     # response=model.generate_content([prompt[0],input_html,specs])
     return final_response.text
@@ -70,43 +72,46 @@ topics_search=['Learn Morse Code',
 'Update yourself on politics',
 'Read feminist theory',
 'Why introversion should be more appreciated',
-'How to knit',
-'What kind of knife to use in what cooking situations',
-'What kind of cheese pairs best with what food',
-'Learn different knots',
-'Learn basic greetings in different languages',
-'Speed read the African novel Things Fall Apart',
-'Speed read the novel The Good Earth',
-'Speed read the novel Malalas Story',
-'Speed read or get the digest version of any number of book or short story out there',
-'How to perform CPR',
-'How to help perform “CPR for mental illnesses”',
-'Study how an engine works',
-'Learn how to best cut hair',
-'Learn how to better appreciate film',
-'Learn how to better tell a story',
-'Learn how to forage for food',
-'Learn how best to garden',
-'Learn about different kinds of soon-to-be extinct animals',
-'Learn to sleep with your eyes open',
-'Learn to recognize constellations',
-'Learn to fix clothes',
-'Learn to make plastic bag mats',
-'Learn to draw',
-'Learn to watercolor',
-'Learn to paint',
-'Study the etymological roots of words']
-df=pd.DataFrame()
-df['URL']=[]
-df['SUMMARY']=[]
+'How to knit']
+# 'What kind of knife to use in what cooking situations',
+# 'What kind of cheese pairs best with what food',
+# 'Learn different knots',
+# 'Learn basic greetings in different languages',
+# 'Speed read the African novel Things Fall Apart',
+# 'Speed read the novel The Good Earth',
+# 'Speed read the novel Malalas Story',
+# 'Speed read or get the digest version of any number of book or short story out there',
+# 'How to perform CPR',
+# 'How to help perform “CPR for mental illnesses”',
+# 'Study how an engine works',
+# 'Learn how to best cut hair',
+# 'Learn how to better appreciate film',
+# 'Learn how to better tell a story',
+# 'Learn how to forage for food',
+# 'Learn how best to garden',
+# 'Learn about different kinds of soon-to-be extinct animals',
+# 'Learn to sleep with your eyes open',
+# 'Learn to recognize constellations',
+# 'Learn to fix clothes',
+# 'Learn to make plastic bag mats',
+# 'Learn to draw',
+# 'Learn to watercolor',
+# 'Learn to paint',
+# 'Study the etymological roots of words']
+df=pd.read_csv('data_g_sim.csv')
+# df['URL']=[]
+# df['SUMMARY']=[]
 count=0
 for topic in topics_search:
     urls=generate_urls(topic)
+    print(topic)
     for url in urls:
         html=requests.get(url).text
         summary=get_gemini_response(input_html=html)
         df.loc[count]=[url,summary]
         count+=1
-        break
-    break
+        # break
+    # break
+print(df)
+df.to_csv('data_g_sim.csv')
 # print(len(requests.get('https://deepmind.google/technologies/gemini/#introduction').text))
