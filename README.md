@@ -5,4 +5,4 @@
 3. copy the api key in .env file with name SERP_API_KEY="your key" <br>
 4. similarly copy mistral api key with name MISTRAL_API_KEY="api key".<br>
 5. now open terminal and run     streamlit run .\frontend.py to run the fronten.<br>
-<a href=https://github.com/AdventurousSam/FtHackathon target=_blank> link to demo video<a>
+click view raw in <a href=https://github.com/AdventurousSam/FtHackathon/blob/main/LLMDEMO.mp4 target=_blank> link to demo video<a>
