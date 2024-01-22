@@ -5,15 +5,14 @@ from bs4 import BeautifulSoup
 from serpapi import GoogleSearch
 import requests
 import json
-from google import generativeai as genai
+# from google import generativeai as genai
 from dotenv import load_dotenv
-import requests
+# import requests
 import os
+import pickle
 
 load_dotenv()
-genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
-
-urls_n_summs = {}
+# genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
 
 def generate_urls(user_input):
     # You can replace this logic with your own URL generation based on user input
@@ -21,7 +20,8 @@ def generate_urls(user_input):
         "engine": "google",
         "q": user_input,
         "api_key": os.getenv('SERP_API_KEY'),
-        "num" : 8
+        "num" : 8,
+        "uule" : 'in'
     }
 
     search = GoogleSearch(params)
@@ -53,44 +53,79 @@ def resp(link):
        your summary should be able to explain the person about the website he opens.
        generate summary within wordlimit of 50 words.
        """}
+        # {"role":"user","content":f"""you are expert in understanding about the website by just from its URL.
+        #                                you have to provide a summary about the webpage from the given URL in less than 50 words.
+        #                                {link} is the URL of the website.
+        #                                your summary shuld be capable enough to make the person understand about the website.
+        #                                follow the condition of 50 words.
+        #                                """}
     ]
     })
     )
     return (json.loads(response.text.strip())['choices'][0]['message']['content'])
 
-def geminiresp(url):
-    #write code to generate summary from gemini
-    model = genai.GenerativeModel('models/gemini-pro')
-    response = model.generate_content(f"Give a brief summary in 50 words from this url: {url}")
-    return response.text
+# def geminiresp(url):
+#     safety_settings = {
+#         'HARM_CATEGORY_SEXUALLY_EXPLICIT' : 'block_none',
+#         'HARM_CATEGORY_HATE_SPEECH' : 'block_none',
+#         'HARM_CATEGORY_HARASSMENT' : 'block_none',
+#         'HARM_CATEGORY_DANGEROUS_CONTENT' : 'block_none'
+#     }
+#     #write code to generate summary from gemini
+#     model = genai.GenerativeModel('models/gemini-pro',safety_settings=safety_settings)
+#     response = model.generate_content(f"""you are expert in understanding about the website by just from its URL.
+#                                       you have to provide a summary about the webpage from the given URL in less than 50 words.
+#                                       {url} is the URL of the website.
+#                                       your summary shuld be capable enough to make the person understand about the website.
+#                                       follow the condition of 50 words.
+#                                         """)
+#     return response.text
 
 def search_button_clicked(userinput):
+    global urls_n_summs
+    urls_n_summs={}
     with st.spinner("Generating URLs..."):
         urls = generate_urls(userinput)
     with st.spinner("Generating summaries..."):
-        for url in urls:
+        for i in range(len(urls)):
+            url = urls[i]
             try:
                 # summary = resp(url)
-                summary = geminiresp(url)
+                summary = resp(url)
                 urls_n_summs[url] = summary
+                with open("Stored searches.pickle", 'wb') as f:
+                    pickle.dump(urls_n_summs, f)
             except:
                 continue
-            url_button = st.button(summary, on_click=button_click, args=([url]))
+            st.button(summary, 'sbutton'+str(i), on_click=button_click, args=([url]))
 
 
 def button_click(url):
-    webbrowser.open(url, 2)
+    webbrowser.open(url, 1)
 
 def main():
-    st.title("Streamlit URL Generation with Summary Example")
+    global urls_n_summs
+    st.title("URL Generation with Summary Example")
     st.sidebar.header("User Input")
+
+    if os.path.exists('Stored searches.pickle'):
+        with open('Stored searches.pickle', 'rb') as f:
+            urls_n_summs = pickle.load(f)
+    else:
+        urls_n_summs = {}
 
     # Use st.text_area instead of st.text_input
     user_input = st.sidebar.text_area("Enter your text:")
-    generate_button = st.sidebar.button("Generate URLs", on_click=search_button_clicked, args=([user_input]))
     if urls_n_summs:
+        i = 0
         for url in urls_n_summs:
-            st.button(urls_n_summs[url], on_click=button_click, args=([url]))
+            st.button(urls_n_summs[url], i, on_click=button_click, args=([url]))
+            i += 1
+    generate_button = st.sidebar.button("Generate URLs", on_click=search_button_clicked, args=([user_input]))
 
 if __name__ == "__main__":
+    # global urls_n_summs
+    # urls_n_summs = {}
+    # with open("Stored searches.pickle", 'wb') as f:
+    #     pickle.dump(urls_n_summs, f)
     main()

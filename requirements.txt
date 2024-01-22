@@ -1,3 +1,8 @@
 mistralai
-google-generativeai
 streamlit
+serpapi
+google-search-results
+dotenv
+requests
+os
+pickle
